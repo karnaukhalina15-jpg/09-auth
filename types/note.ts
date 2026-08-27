@@ -8,3 +8,18 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
 }
+
+export type AuthResponse = {
+  email: string;
+  password: string;
+  userName: string;
+};
+
+export type LoginCredentials = {
+  email: string;
+  password: string;
+};
+
+export type CheckSessionRequest = {
+  success: boolean;
+};

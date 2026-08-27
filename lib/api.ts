@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { type Note, type NoteTag } from "../types/note";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -8,6 +8,8 @@ export interface DraftNote {
   content: string;
   tag: string;
 }
+
+export type ApiError = AxiosError<{ error: string }>;
 
 const initialDraft: DraftNote = {
   title: "",
@@ -38,15 +40,19 @@ export const useNoteStore = create<NoteStore>()(
   ),
 );
 
-const API_BASE_URL = "https://notehub-public.goit.study/api";
-const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-
-export const noteApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    Authorization: `Bearer ${TOKEN}`,
-  },
+const nextServer = axios.create({
+  baseURL: "http://localhost:3000/api",
+  withCredentials: true,
 });
+export const getNotes = async (categoryId?: string) => {
+  const res = await nextServer.get<NoteListResponse>("/notes", {
+    params: { categoryId },
+  });
+  return res.data;
+};
+export interface NoteListResponse {
+  categoryId: number;
+}
 
 export interface FetchNotesResponse {
   notes: Note[];
@@ -72,22 +78,74 @@ export const fetchNotes = async ({
   search = "",
   tag,
 }: FetchNotesParams): Promise<FetchNotesResponse> => {
-  const { data } = await noteApi.get<FetchNotesResponse>("/notes", {
+  const { data } = await nextServer.get<FetchNotesResponse>("/notes", {
     params: { page, perPage, search, tag },
   });
   return data;
 };
 export const fetchNoteById = async (id: string): Promise<Note> => {
-  const { data } = await noteApi.get<Note>(`/notes/${id}`);
+  const { data } = await nextServer.get<Note>(`/notes/${id}`);
   return data;
 };
 
 export const createNote = async (newNote: CreateNoteDto): Promise<Note> => {
-  const { data } = await noteApi.post<Note>("/notes", newNote);
+  const { data } = await nextServer.post<Note>("/notes", newNote);
   return data;
 };
 
 export const deleteNote = async (id: string): Promise<Note> => {
-  const { data } = await noteApi.delete<Note>(`/notes/${id}`);
+  const { data } = await nextServer.delete<Note>(`/notes/${id}`);
   return data;
+};
+
+export type RegisterCredentials = {
+  email: string;
+  password: string;
+  username: string;
+};
+
+export type User = {
+  id: string;
+  email: string;
+  userName?: string;
+  photoUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export const register = async (data: RegisterCredentials) => {
+  const res = await nextServer.post<User>("/auth/register", data);
+  return res.data;
+};
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export const login = async (data: LoginRequest) => {
+  const res = await nextServer.post<User>("/auth/login", data);
+  return res.data;
+};
+type CheckSession = {
+  success: boolean;
+};
+
+export const CheckSession = async () => {
+  const res = await nextServer.get<CheckSessionRequest>("/auth/session");
+  return res.data.success;
+};
+
+export const getMe = async () => {
+  const { data } = await nextServer.get<User>("/auth/me");
+  return data;
+};
+
+type CheckSessionRequest = {
+  success: boolean;
+};
+
+export const CheckSessionRequest = async () => {
+  const res = await nextServer.get<CheckSessionRequest>("/auth/session");
+  return res.data.success;
 };

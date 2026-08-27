@@ -7,7 +7,6 @@ import { fetchNotes } from "@/lib/api";
 import NotesClient from "./Notes.client";
 import { NoteTag } from "@/types/note";
 import type { Metadata } from "next";
-
 type Props = {
   params: Promise<{ slug?: string[] }>;
 };

@@ -1,52 +1,51 @@
-import Header from "@/components/Header/Header";
-import Footer from "@/components/Footer/Footer";
-import TanStackProvider from "@/components/TanStackProvider/TanStackProvider";
-import { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import type { Metadata } from "next";
+import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 
-const roboto = Roboto({
-  weight: ["400", "500", "700"],
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-roboto",
-  display: "swap",
+import Header from "@/components/Header/Header";
+import Footer from "@/components/Footer/Footer";
+import AuthProvider from "@/components/AuthProvider/AuthProvider";
+import TanstackProvider from "../components/TanStackProvider/TanStackProvider";
+
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  axes: ["SOFT", "WONK", "opsz"],
 });
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "NoteHub - Your Personal Notes Manager",
-  description:
-    "Organize, manage, and keep track of your notes easily with NoteHub.",
-  openGraph: {
-    title: "NoteHub - Your Personal Notes Manager",
-    description:
-      "Organize, manage, and keep track of your notes easily with NoteHub.",
-    url: "https://notehub.com/",
-    images: [
-      {
-        url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
-        width: 1200,
-        height: 630,
-        alt: "NoteHub OG Image",
-      },
-    ],
-  },
+  title: "Test title",
+  description: "Test description",
 };
 
 export default function RootLayout({
   children,
   modal,
-}: {
+}: Readonly<{
   children: React.ReactNode;
   modal: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" className={roboto.variable}>
-      <body className={roboto.className}>
-        <TanStackProvider>
-          <Header />
-          {children}
-          {modal}
-          <Footer />
-        </TanStackProvider>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${manrope.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col font-sans text-ink">
+        <TanstackProvider>
+          <AuthProvider>
+            <Header />
+            <main className="flex-1">
+              {children}
+              {modal}
+            </main>
+            <Footer />
+          </AuthProvider>
+        </TanstackProvider>
       </body>
     </html>
   );
