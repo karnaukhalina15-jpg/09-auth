@@ -10,24 +10,23 @@ import css from "./SignUpPage.module.css";
 export default function SignUpPage() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const setUser = useAuthStore((state) => state.setUser);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const email = String(formData.get("email") || "");
     const password = String(formData.get("password") || "");
 
     try {
-      // 1. Надсилаємо запит на реєстрацію
       const user = await register({ email, password });
 
       if (user) {
-        // 2. Зберігаємо користувача у Zustand-стор (встановлює isAuthenticated: true)
         setUser(user);
-        // 3. Редірект на сторінку профілю
         router.push("/profile");
         router.refresh();
       }
@@ -39,6 +38,8 @@ export default function SignUpPage() {
       } else {
         setError("Registration failed");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -53,6 +54,7 @@ export default function SignUpPage() {
             type="email"
             name="email"
             className={css.input}
+            disabled={isLoading}
             required
           />
         </div>
@@ -64,13 +66,18 @@ export default function SignUpPage() {
             type="password"
             name="password"
             className={css.input}
+            disabled={isLoading}
             required
           />
         </div>
 
         <div className={css.actions}>
-          <button type="submit" className={css.submitButton}>
-            Register
+          <button
+            type="submit"
+            className={css.submitButton}
+            disabled={isLoading}
+          >
+            {isLoading ? "Registering..." : "Register"}
           </button>
         </div>
 

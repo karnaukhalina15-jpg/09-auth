@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { parseSetCookie } from "cookie";
-import { checkServerSession } from "./lib/api/serverApi";
+import { checkSession } from "./lib/api/serverApi";
 
-// 1. Додаємо '/notes' у приватні маршрути
 const privateRoutes = ["/profile", "/notes"];
 const publicRoutes = ["/sign-in", "/sign-up"];
 
@@ -23,14 +22,13 @@ export async function proxy(request: NextRequest) {
   if (!accessToken) {
     if (refreshToken) {
       try {
-        const data = await checkServerSession();
+        const data = await checkSession();
         const setCookie = data?.headers?.["set-cookie"];
 
         if (setCookie) {
           const cookieArray = Array.isArray(setCookie)
             ? setCookie
             : [setCookie];
-
           for (const cookieStr of cookieArray) {
             const parsed = parseSetCookie(cookieStr);
 
@@ -56,7 +54,7 @@ export async function proxy(request: NextRequest) {
           }
         }
       } catch (error) {
-        console.error("Proxy session check error:", error);
+        console.error("Proxy session check failed:", error);
       }
     }
 
@@ -80,7 +78,7 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-// 2. Обов'язково додаємо '/notes/:path*' у matcher
+// 3. У matcher додаємо всі приватні та публічні маршрути без дублювань
 export const config = {
   matcher: ["/profile/:path*", "/notes/:path*", "/sign-in", "/sign-up"],
 };

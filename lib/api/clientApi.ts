@@ -86,19 +86,19 @@ export const logout = async (): Promise<void> => {
   await noteApi.post("/auth/logout");
 };
 
-export const checkSession = async (): Promise<User | null> => {
+export const checkSession = async () => {
   try {
-    const { data } = await noteApi.get<User | null>("/auth/session");
-    return data;
+    const res = await noteApi.get("/auth/session");
+    return res.data;
   } catch {
     return null;
   }
 };
 
-export const getMe = async (): Promise<User | null> => {
+export const getMe = async () => {
   try {
-    const { data } = await noteApi.get<User>("/users/me");
-    return data;
+    const res = await noteApi.get("/users/me");
+    return res.data;
   } catch {
     return null;
   }

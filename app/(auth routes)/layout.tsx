@@ -7,15 +7,13 @@ type Props = {
   children: React.ReactNode;
 };
 
-export default function AuthLayout({ children }: Props) {
+export default function PublicLayout({ children }: Props) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // 1. Примусово оновлюємо серверні дані
     router.refresh();
 
-    // 2. Безпечно оновлюємо стан loading
     startTransition(() => {
       setLoading(false);
     });

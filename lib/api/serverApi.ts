@@ -63,38 +63,14 @@ export const getMe = async (): Promise<User | null> => {
   }
 };
 
-export const checkSession = async (
-  cookieHeader?: string,
-): Promise<User | null> => {
-  try {
-    const cookie = cookieHeader ?? (await cookies()).toString();
+export const checkSession = async () => {
+  const cookieStore = await cookies();
 
-    const { data } = await noteApi.get<User>("/auth/session", {
-      headers: {
-        Cookie: cookie,
-      },
-    });
+  const response = await noteApi.get("/auth/session", {
+    headers: {
+      Cookie: cookieStore.toString(),
+    },
+  });
 
-    return data;
-  } catch {
-    return null;
-  }
-};
-export const checkServerSession = async () => {
-  try {
-    const cookieStore = await cookies();
-
-    // Передаємо куки поточного запиту далі на бекенд
-    const response = await noteApi.get("/auth/session", {
-      headers: {
-        Cookie: cookieStore.toString(),
-      },
-    });
-
-    // Повертаємо повний Axios response (із заголовками response.headers)
-    return response;
-  } catch (error) {
-    console.error("checkServerSession error:", error);
-    return null;
-  }
+  return response;
 };
