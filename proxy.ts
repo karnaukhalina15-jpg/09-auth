@@ -29,29 +29,43 @@ export async function proxy(request: NextRequest) {
           const cookieArray = Array.isArray(setCookie)
             ? setCookie
             : [setCookie];
+
+          // 1. Формуємо відповідь залежно від типу маршруту
+          let response: NextResponse;
+
+          if (isPublicRoute) {
+            response = NextResponse.redirect(new URL("/", request.url));
+          } else {
+            response = NextResponse.next();
+          }
+
+          // 2. Встановлюємо оновлені куки у NextResponse (додає Set-Cookie для браузера)
+          // та прокидаємо Cookie заголовок для подальших Server Components
           for (const cookieStr of cookieArray) {
             const parsed = parseSetCookie(cookieStr);
 
-            if (parsed.value) {
-              cookieStore.set(parsed.name, parsed.value, parsed);
+            if (parsed.name && parsed.value) {
+              // Явно прописуємо кукі у вихідну відповідь (для браузера клієнта)
+              response.cookies.set(parsed.name, parsed.value, {
+                domain: parsed.domain,
+                path: parsed.path,
+                expires: parsed.expires,
+                maxAge: parsed.maxAge,
+                sameSite: parsed.sameSite as
+                  | "strict"
+                  | "lax"
+                  | "none"
+                  | undefined,
+                secure: parsed.secure,
+                httpOnly: parsed.httpOnly,
+              });
             }
           }
 
-          if (isPublicRoute) {
-            return NextResponse.redirect(new URL("/", request.url), {
-              headers: {
-                Cookie: cookieStore.toString(),
-              },
-            });
-          }
+          // Також передаємо оновлені куки в поточний запит (щоб Next.js Server Components бачили їх одразу)
+          response.headers.set("Cookie", cookieStore.toString());
 
-          if (isPrivateRoute) {
-            return NextResponse.next({
-              headers: {
-                Cookie: cookieStore.toString(),
-              },
-            });
-          }
+          return response;
         }
       } catch (error) {
         console.error("Proxy session check failed:", error);
@@ -71,14 +85,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (isPrivateRoute) {
-    return NextResponse.next();
-  }
-
   return NextResponse.next();
 }
 
-// 3. У matcher додаємо всі приватні та публічні маршрути без дублювань
 export const config = {
   matcher: ["/profile/:path*", "/notes/:path*", "/sign-in", "/sign-up"],
 };

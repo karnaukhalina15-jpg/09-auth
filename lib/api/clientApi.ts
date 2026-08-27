@@ -68,10 +68,18 @@ export const deleteNote = async (id: string): Promise<Note> => {
 export const register = async (
   credentials: RegisterCredentials,
 ): Promise<User> => {
-  const payload = {
+  // Знаходимо username з двох можливих ключів в інтерфейсі
+  const username = credentials.username || credentials.userName;
+
+  const payload: Record<string, string> = {
     email: credentials.email,
     password: credentials.password,
   };
+
+  // Додаємо username в payload, якщо він присутній
+  if (username) {
+    payload.username = username;
+  }
 
   const { data } = await noteApi.post<User>("/auth/register", payload);
   return data;
