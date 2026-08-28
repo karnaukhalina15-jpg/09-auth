@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { parseSetCookie } from "cookie";
-import { checkServerSession } from "./lib/api/serverApi";
+import { checkSession } from "./lib/api/serverApi";
 
 const privateRoutes = ["/profile", "/notes"];
 const publicRoutes = ["/sign-in", "/sign-up"];
@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
     if (refreshToken) {
       // Якщо accessToken відсутній, але є refreshToken — потрібно перевірити сесію навіть для публічного маршруту,
       // адже сесія може залишатися активною, і тоді потрібно заборонити доступ до публічного маршруту.
-      const data = await checkServerSession();
+      const data = await checkSession();
       const setCookie = data.headers["set-cookie"];
 
       if (setCookie) {
